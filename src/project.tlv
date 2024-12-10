@@ -42,63 +42,53 @@
    m4_include_lib(https:/['']/raw.githubusercontent.com/efabless/chipcraft---mest-course/main/tlv_lib/calculator_shell_lib.tlv)
 
 \TLV calc()
+   
+   
+   // ==================
+   // |                |
+   // | YOUR CODE HERE |
+   // |                |
+   // ==================
    |calc
       @1
          $reset = *reset;
-         $val1[7:0] = >>1$out ;       //>> is used to fetch the last cycle value i.e. >>1 last 1st cycle and >>2 means 2nd last cycle value.
-         $val2[7:0] = { 4'b0, *ui_in[3:0] } ;
-         $sum[7:0] = $val1[7:0] + $val2[7:0] ;
-         $diff[7:0] = $val1[7:0] - $val2[7:0] ;
-         $pro[7:0] = $val1[7:0] * $val2[7:0] ;
-         $div[7:0] = $val1[7:0] / $val2[7:0] ;
-         $op[1:0] = *ui_in[5:4] ;
+         
          $equals_in = *ui_in[7];
-         $valid = $equals_in && ! 1>>$equals_in;
-         $out[10:0] = 
-            $reset
-             ? 8'd0 :
-            ! $valid
+         $op[1:0] = *ui_in[5:4];
+         $val1[7:0] = >>1$out;
+         $val2[7:0] = {4'b0000, *ui_in[3:0]};
+         $valid = $reset ? 1'b0 : $equals_in && ! >>1$equals_in;
+         $out[7:0] =
+             $reset
+                ? 8'b0 :
+             !$valid 
              ? >>1$out :
-            $op[1:0] == 2'd0
-             ? $sum :
-            $op[1:0] == 2'd1
-             ? $diff :
-            $op[1:0] == 2'd2
-              ? $pro :
-              $div;
+             $op[1:0] == 2'b00
+             ? $val1 + $val2 :
+             $op[1:0] == 2'b01
+             ? $val1 - $val2 :
+             $op[1:0] == 2'b10
+             ? $val1 * $val2 :
+             //default
+              $val1 / $val2;
          $digit[3:0] = $out[3:0];
          *uo_out =
-            $digit == 4'h0
-               ? 8'b00111111 :
-            $digit == 4'h1 
-              ? 8'b00000110 :
-            $digit == 4'h2
-              ? 8'b01011011 :
-            $digit == 4'h3 
-              ? 8'b01001111 :
-            $digit == 4'h4 
-              ? 8'b01100110 :
-            $digit == 4'h5 
-              ? 8'b01101101 :
-            $digit == 4'h6 
-              ? 8'b01111101 :
-            $digit == 4'h7 
-              ? 8'b00000111 :
-            $digit == 4'h8 
-              ? 8'b01111111 :
-            $digit == 4'h9 
-              ? 8'b01101111 :
-            $digit == 4'hA 
-              ? 8'b01110111 :
-            $digit == 4'hB 
-              ? 8'b01111100 :
-            $digit == 4'hC 
-              ? 8'b00111001 :
-            $digit == 4'hD 
-              ? 8'b01011110 :
-            $digit == 4'hE 
-              ? 8'b01111001 :
-                8'b01110001 ;
+              $digit == 4'h0 ? 8'b00111111 :
+                  $digit == 4'h1 ? 8'b00000110 :
+                  $digit == 4'h2 ? 8'b01011011 :
+                  $digit == 4'h3 ? 8'b01001111 :
+                  $digit == 4'h4 ? 8'b01100110 :
+                  $digit == 4'h5 ? 8'b01101101 :
+                  $digit == 4'h6 ? 8'b01111101 :
+                  $digit == 4'h7 ? 8'b00000111 :
+                  $digit == 4'h8 ? 8'b01111111 :
+                  $digit == 4'h9 ? 8'b01101111 :
+                  $digit == 4'hA ? 8'b01110111 :
+                  $digit == 4'hB ? 8'b01111100 :
+                  $digit == 4'hC ? 8'b00111001 :
+                  $digit == 4'hD ? 8'b01011110 :
+                  $digit == 4'hE ? 8'b01111001 :
+                                   8'b01110001;
    // Note that pipesignals assigned here can be found under /fpga_pins/fpga.
    
    
@@ -106,7 +96,7 @@
    m5+cal_viz(@1, m5_if(m5_in_fpga, /fpga, /top))
    
    // Connect Tiny Tapeout outputs. Note that uio_ outputs are not available in the Tiny-Tapeout-3-based FPGA boards.
-   //*uo_out = 8'hFE;
+   //*uo_out = 8'b0;
    m5_if_neq(m5_target, FPGA, ['*uio_out = 8'b0;'])
    m5_if_neq(m5_target, FPGA, ['*uio_oe = 8'b0;'])
 
